@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Antwerpes\LaravelEventStore;
 
@@ -38,7 +38,7 @@ class EventStore
 
     public function pullEventsForGoogleTagManager(): array
     {
-        return Arr::map($this->pullEvents(), fn (array $event) => array_merge([
+        return Arr::map($this->pullEvents(), static fn (array $event) => array_merge([
             'event' => $event['name'],
         ], $event['payload']));
     }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Antwerpes\LaravelEventStore;
 
@@ -9,9 +9,7 @@ class LaravelEventStoreServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
-        /*
-         * This class is a Package Service Provider
-         */
+        // This class is a Package Service Provider
         $package
             ->name('laravel-event-store')
             ->hasConfigFile();
@@ -19,8 +17,6 @@ class LaravelEventStoreServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this->app->singleton(EventStore::class, function () {
-            return new EventStore();
-        });
+        $this->app->singleton(EventStore::class, static fn () => new EventStore);
     }
 }
