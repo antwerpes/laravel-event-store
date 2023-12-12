@@ -52,9 +52,7 @@ class EventStore
             $script .= "{$variableName}.push(".json_encode($event, JSON_UNESCAPED_UNICODE).");\n";
         }
 
-        $script .= "</script>";
-
-        return $script;
+        return $script.'</script>';
     }
 
     protected function pullEvents(): array
