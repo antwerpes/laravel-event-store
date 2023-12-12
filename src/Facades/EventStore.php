@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static void push(string $name, array $payload = [])
- * @method static string dumpForGTM()
+ * @method static string dumpForGTM(string $variableName = 'dataLayer')
  * @method static array getEvents()
  * @method static void setEvents(array $events)
  * @method static bool hasEvents()

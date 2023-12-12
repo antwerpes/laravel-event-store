@@ -43,9 +43,18 @@ class EventStore
         ], $event['payload']));
     }
 
-    public function dumpForGTM(): string
+    public function dumpForGTM(string $variableName = 'dataLayer'): string
     {
-        return json_encode($this->pullEventsForGoogleTagManager(), JSON_UNESCAPED_UNICODE);
+        $script = "<script>\nwindow.{$variableName} = window.{$variableName} || [];\n";
+        $events = $this->pullEventsForGoogleTagManager();
+
+        foreach ($events as $event) {
+            $script .= "{$variableName}.push(".json_encode($event, JSON_UNESCAPED_UNICODE).");\n";
+        }
+
+        $script .= "</script>";
+
+        return $script;
     }
 
     protected function pullEvents(): array

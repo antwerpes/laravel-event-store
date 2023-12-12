@@ -1,19 +1,11 @@
-# This is my package laravel-event-store
+# Laravel Event Store
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/antwerpes/laravel-event-store.svg?style=flat-square)](https://packagist.org/packages/antwerpes/laravel-event-store)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/antwerpes/laravel-event-store/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/antwerpes/laravel-event-store/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/antwerpes/laravel-event-store/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/antwerpes/laravel-event-store/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/antwerpes/laravel-event-store/lint.yml?branch=master)](https://github.com/antwerpes/laravel-event-store/actions?query=workflow%3Alint+branch%3Amaster)
 [![Total Downloads](https://img.shields.io/packagist/dt/antwerpes/laravel-event-store.svg?style=flat-square)](https://packagist.org/packages/antwerpes/laravel-event-store)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
-
-## Support us
-
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-event-store.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-event-store)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+Simple store for tracking events (e.g. for Google Tag Manager) in Laravel. Fire events from anywhere in your 
+application and later retrieve them in your frontend.
 
 ## Installation
 
@@ -23,14 +15,18 @@ You can install the package via composer:
 composer require antwerpes/laravel-event-store
 ```
 
-You can publish and run the migrations with:
+You must also add the middleware to your `web` group, at the end of the stack:
 
-```bash
-php artisan vendor:publish --tag="laravel-event-store-migrations"
-php artisan migrate
+```php
+protected $middlewareGroups = [
+    'web' => [
+        ...
+        \Antwerpes\LaravelEventStore\Middleware\FlashEventStore::class,
+    ],
+];
 ```
 
-You can publish the config file with:
+You can optionally publish the config file with:
 
 ```bash
 php artisan vendor:publish --tag="laravel-event-store-config"
@@ -40,26 +36,63 @@ This is the contents of the published config file:
 
 ```php
 return [
+    'session_key' => '_eventStore',
 ];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="laravel-event-store-views"
 ```
 
 ## Usage
 
+From anywhere in your application, you can fire events like this:
+
 ```php
-$laravelEventStore = new Antwerpes\LaravelEventStore();
-echo $laravelEventStore->echoPhrase('Hello, Antwerpes!');
+use Antwerpes\LaravelEventStore\Facades\EventStore;
+
+EventStore::push('event-name');
+// Or with additional data
+EventStore::push('event-name', ['foo' => 'bar']);
 ```
 
-## Testing
+Events that you don't retrieve during the current request cycle will be flashed to the session and made available
+to the next request. That way, you can also fire events and retrieve them after a redirect.
 
-```bash
-composer test
+```php
+// This will work
+EventStore::push('event-name');
+return view('some-view');
+
+// This will also work
+EventStore::push('event-name');
+return redirect()->route('some-route');
+```
+
+In your frontend, you can dump the events like this:
+
+```php
+{!! EventStore::dumpForGTM() !!}
+```
+
+which will output something like this:
+
+```html
+<script>
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+        'event': 'event-name',
+        'foo': 'bar'
+    });
+</script>
+```
+
+In case you want to use a different variable name, you can pass it as a parameter:
+
+```php
+{!! EventStore::dumpForGTM('myDataLayer') !!}
+```
+
+You can also pull the events as an array and use them however you like:
+
+```php
+EventStore::pullEvents();
 ```
 
 ## Changelog
@@ -68,11 +101,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+Contributions are welcome! Leave an issue on GitHub, or create a Pull Request.
 
 ## Credits
 
